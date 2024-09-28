@@ -1,9 +1,13 @@
 #pragma once
 #include <algorithm>
 #include <array>
+#include <cmath>     // For std::round
+#include <iostream>
 #include <random>
 #include <ranges>
 #include <unordered_map>
+#include <utility>   // For std::pair
+#include <vector>
 
 enum class tetrimino_t
 {
@@ -26,18 +30,6 @@ std::unordered_map<tetrimino_t, shape_t> shapes{{{tetrimino_t::I, shape_t{{coord
                                                        {tetrimino_t::S, shape_t{{coord_t{0, 0}, coord_t{0, 1}, coord_t{1, 1}, coord_t{1, 2}}, 1.0}}
                                                        }};
 
-#include <cmath>     // For std::round
-#include <algorithm> // For std::clamp
-#include <utility>   // For std::pair
-#include <vector>
-#include <iostream>
-
-#include <cmath>     // For std::round
-#include <algorithm> // For std::clamp, std::transform
-#include <utility>   // For std::pair
-#include <vector>
-#include <iostream>
-#include <functional> // For std::bind_front
 
 constexpr int GRID_MIN = 0;
 constexpr int GRID_MAX = 3;
@@ -167,6 +159,18 @@ struct tetris_game
         return result;
     }
 
+    void check_full_lines(int from, int to) {
+        for (int row {from}; row <= to; ++row) {
+            if (std::ranges::none_of(board[row], is_free)) {
+                // score
+                // scroll down
+                for (int srow{row}; srow > 0; --srow) {
+                    board[srow] = board[srow-1];
+                }
+            }
+        }
+    }
+
     void step()
     {
         if (finished)
@@ -179,6 +183,7 @@ struct tetris_game
         {
             --current_y;
             plot();
+            check_full_lines(current_y, current_y + 4);
             current_tetrimino = random_tetrimino();
             current_x = random_x();
             current_y = 0;
