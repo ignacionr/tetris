@@ -40,9 +40,9 @@ int main() {
             }
         });
         if (std::chrono::system_clock::now() > next_step) {
-            game.step();
-            next_step = std::chrono::system_clock::now() + pace;
+            auto offset = std::chrono::duration_cast<std::chrono::system_clock::duration>(pace * game.step());
+            next_step = std::chrono::system_clock::now() + offset;
         }
-        screen.render(game);
+        screen.render(game, pace);
     }
 }

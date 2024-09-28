@@ -21,13 +21,13 @@ struct tetris_screen
         SDL_Quit();
     }
     
-    void render(tetris_game const &game) {
+    void render(tetris_game const &game, std::chrono::system_clock::duration pace) {
         SDL_SetRenderDrawColor(pRenderer, 0,0,0,255);
         SDL_RenderClear(pRenderer);
         SDL_Rect rect{20,20,BLOCK_WIDTH,BLOCK_HEIGHT};
-        for (int row = 2; row < game.height; ++row) {
+        for (int row = 2; row < game_height; ++row) {
             rect.y = row * BLOCK_HEIGHT;
-            for (int col = 0; col < game.width; ++col) {
+            for (int col = 0; col < game_width; ++col) {
                 rect.x = col * BLOCK_WIDTH + 100;
                 auto color = colors[static_cast<int>(game.board[row][col])];
                 SDL_SetRenderDrawColor(pRenderer, color[0], color[1], color[2], 255);
@@ -35,9 +35,9 @@ struct tetris_screen
             }
         }
         rect.x = 90;
-        rect.w = BLOCK_WIDTH * game.width + 20;
-        rect.y = game.height * BLOCK_HEIGHT + game.height / 2;
-        rect.h = game.height / 3;
+        rect.w = BLOCK_WIDTH * game_width + 20;
+        rect.y = game_height * BLOCK_HEIGHT + game_height / 2;
+        rect.h = game_height / 3;
         SDL_SetRenderDrawColor(pRenderer, 255,255,255, 255);
         SDL_RenderFillRect(pRenderer, &rect);
         SDL_RenderPresent(pRenderer);

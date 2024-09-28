@@ -1,6 +1,7 @@
 #pragma once
 #include <algorithm>
 #include <array>
+#include <chrono>
 #include <cmath>     // For std::round
 #include <functional>
 #include <iostream>
@@ -10,22 +11,9 @@
 #include <utility>   // For std::pair
 #include <vector>
 
-enum class tetrimino_t
-{
-    none,
-    I,
-    O,
-    T,
-    L,
-    J,
-    S,
-    Z,
-    end
-};
+#include "tetrimino.hpp"
+#include "animation.hpp"
 
-using coord_t = std::pair<u_char, u_char>;
-using four_blocks_t = std::array<coord_t, 4>;
-using shape_t = std::pair<four_blocks_t, double>;
 std::unordered_map<tetrimino_t, shape_t> shapes{{{tetrimino_t::I, shape_t{{coord_t{0, 0}, coord_t{1, 0}, coord_t{2, 0}, coord_t{3, 0}}, 1.5}},
                                                        {tetrimino_t::O, shape_t{{coord_t{0, 0}, coord_t{1, 0}, coord_t{0, 1}, coord_t{1, 1}}, 0.5}},
                                                        {tetrimino_t::T, shape_t{{coord_t{0, 0}, coord_t{0, 1}, coord_t{0, 2}, coord_t{1, 1}}, 1.0}},
@@ -74,8 +62,6 @@ auto rotate = [](int rotations, const std::pair<int, int> &p, double center)
 
 struct tetris_game
 {
-    constexpr static uint height = 26;
-    constexpr static uint width = 15;
 
     inline static bool is_free(tetrimino_t t) { return t == tetrimino_t::none; }
 
@@ -99,7 +85,7 @@ struct tetris_game
     static int random_x() { 
         static std::random_device dev;
         static std::mt19937 gen(dev());
-        static std::uniform_int_distribution<> distrib(0, width-4);
+        static std::uniform_int_distribution<> distrib(0, game_width-4);
         return distrib(gen);
     }
 
@@ -131,7 +117,7 @@ struct tetris_game
                                    {
             auto const y {coord.first + current_y};
             auto const x {coord.second + current_x};
-            return (y < height) && (x < width) && is_free(board[y][x]); });
+            return (y < game_height) && (x < game_width) && is_free(board[y][x]); });
     }
 
     bool move_horizontal(int offset)
@@ -169,6 +155,15 @@ struct tetris_game
         for (int row {from}; row <= to; ++row) {
             if (std::ranges::none_of(board[row], is_free)) {
                 if (on_pop) on_pop();
+                // add the animation hint
+                game_animation ga;
+                ga.type = animation_type::row_collapse;
+                ga.duration = 0.25;
+                ga.initial_state = board;
+                for(int col{0}; col < game_width; ++col) {
+                    ga.focus.emplace_back(coord_t{row, col});
+                }
+                animations.emplace_back(std::move(ga));
                 // score
                 // scroll down
                 for (int srow{row}; srow > 0; --srow) {
@@ -178,11 +173,12 @@ struct tetris_game
         }
     }
 
-    void step()
+    float step()
     {
-        if (finished) return;
-        if (current_y >= height) return;
+        if (finished) return 1.0f;
+        if (current_y >= game_height) return 1.0f;
 
+        animations.clear();
         // determine if the current tetrimino can drop to the next row
         plot(true);
         ++current_y;
@@ -190,7 +186,7 @@ struct tetris_game
         {
             --current_y;
             plot();
-            check_full_lines(current_y, std::min(current_y + 4, height));
+            check_full_lines(current_y, std::min(current_y + 4, game_height));
             current_tetrimino = random_tetrimino();
             current_x = random_x();
             current_y = 0;
@@ -202,15 +198,25 @@ struct tetris_game
         {
             plot();
         }
+        last_step = std::chrono::system_clock::now();
+        return 1.0f + std::accumulate(
+            animations.begin(),
+            animations.end(),
+            0.0f, 
+            [](float initial, const game_animation& a) -> float{
+                return initial + a.duration;
+            });
     }
 
-    std::array<std::array<tetrimino_t, width>, height> board{};
+    board_t board{};
     bool finished{false};
     uint current_step{0};
     tetrimino_t current_tetrimino{random_tetrimino()};
     uint current_y{0};
     uint current_x{1};
     char current_rotation{0};
+    std::vector<game_animation> animations;
+    std::chrono::system_clock::time_point last_step;
 
     std::function<void()> on_pop;
 };
