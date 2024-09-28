@@ -2,8 +2,8 @@
 #include <SDL2/SDL.h>
 #include "tetris_game.hpp"
 
-#define BLOCK_WIDTH 20
-#define BLOCK_HEIGHT 20
+#define BLOCK_WIDTH 15
+#define BLOCK_HEIGHT 15
 
 struct tetris_screen 
 {
@@ -25,18 +25,18 @@ struct tetris_screen
         SDL_SetRenderDrawColor(pRenderer, 0,0,0,255);
         SDL_RenderClear(pRenderer);
         SDL_Rect rect{20,20,BLOCK_WIDTH,BLOCK_HEIGHT};
-        for (int row = 0; row < game.height; ++row) {
-            rect.y = row * BLOCK_HEIGHT + 100;
+        for (int row = 2; row < game.height; ++row) {
+            rect.y = row * BLOCK_HEIGHT;
             for (int col = 0; col < game.width; ++col) {
                 rect.x = col * BLOCK_WIDTH + 100;
-                auto color = colors[game.board[row][col]];
+                auto color = colors[static_cast<int>(game.board[row][col])];
                 SDL_SetRenderDrawColor(pRenderer, color[0], color[1], color[2], 255);
                 SDL_RenderFillRect(pRenderer, &rect);
             }
         }
         rect.x = 90;
         rect.w = BLOCK_WIDTH * game.width + 20;
-        rect.y = game.height * BLOCK_HEIGHT + game.height / 2 + 100;
+        rect.y = game.height * BLOCK_HEIGHT + game.height / 2;
         rect.h = game.height / 3;
         SDL_SetRenderDrawColor(pRenderer, 255,255,255, 255);
         SDL_RenderFillRect(pRenderer, &rect);

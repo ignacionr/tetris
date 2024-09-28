@@ -5,7 +5,6 @@
 
 enum class tetris_key {
     none,
-    up,
     down,
     left,
     right,
@@ -29,7 +28,7 @@ struct tetris_controls {
     }
 
     std::unordered_map<SDL_Scancode, tetris_key> key_map {
-        {SDL_SCANCODE_UP, tetris_key::up},
+        {SDL_SCANCODE_UP, tetris_key::rotate_2},
         {SDL_SCANCODE_DOWN, tetris_key::down},
         {SDL_SCANCODE_LEFT, tetris_key::left},
         {SDL_SCANCODE_RIGHT, tetris_key::right},
