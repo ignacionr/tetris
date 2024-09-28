@@ -5,12 +5,21 @@
 #include "tetris_controls.hpp"
 #include "tetris_game.hpp"
 #include "tetris_screen.hpp"
+#include "tetris_audio.hpp"
 
 int main() {
+    static constexpr char theme_audio[] {"assets/tetris.wav"};
+    static constexpr char pop_audio[] {"assets/pop.wav"};
+
     bool quit{false};
     tetris_game game;
     tetris_controls controls;
     tetris_screen screen;
+    tetris_audio audio{theme_audio};
+    tetris_audio audio_pop{pop_audio};
+    game.on_pop = [&audio_pop](){
+        audio_pop.play();
+    };
     std::unordered_map<tetris_key, std::function<void()>> receivers {
         {tetris_key::quit, [&quit] { quit = true; }},
         {tetris_key::down, [&game] { game.step(); }},
@@ -21,6 +30,7 @@ int main() {
     };
     auto next_step {std::chrono::system_clock::now() + std::chrono::seconds(1)};
     auto pace {std::chrono::seconds(1)};
+    audio.play(1.0f);
     while (!quit) {
         controls.process_events([&receivers](tetris_key k){
             auto action_pos = receivers.find(k);

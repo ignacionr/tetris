@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <array>
 #include <cmath>     // For std::round
+#include <functional>
 #include <iostream>
 #include <random>
 #include <ranges>
@@ -162,6 +163,7 @@ struct tetris_game
     void check_full_lines(int from, int to) {
         for (int row {from}; row <= to; ++row) {
             if (std::ranges::none_of(board[row], is_free)) {
+                if (on_pop) on_pop();
                 // score
                 // scroll down
                 for (int srow{row}; srow > 0; --srow) {
@@ -204,4 +206,6 @@ struct tetris_game
     uint current_y{0};
     uint current_x{1};
     char current_rotation{0};
+
+    std::function<void()> on_pop;
 };
