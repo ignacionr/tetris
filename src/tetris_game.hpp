@@ -17,7 +17,9 @@ enum class tetrimino_t
     O,
     T,
     L,
+    J,
     S,
+    Z,
     end
 };
 
@@ -28,7 +30,10 @@ std::unordered_map<tetrimino_t, shape_t> shapes{{{tetrimino_t::I, shape_t{{coord
                                                        {tetrimino_t::O, shape_t{{coord_t{0, 0}, coord_t{1, 0}, coord_t{0, 1}, coord_t{1, 1}}, 0.5}},
                                                        {tetrimino_t::T, shape_t{{coord_t{0, 0}, coord_t{0, 1}, coord_t{0, 2}, coord_t{1, 1}}, 1.0}},
                                                        {tetrimino_t::L, shape_t{{coord_t{0, 0}, coord_t{1, 0}, coord_t{2, 0}, coord_t{2, 1}}, 1.0}},
-                                                       {tetrimino_t::S, shape_t{{coord_t{0, 0}, coord_t{0, 1}, coord_t{1, 1}, coord_t{1, 2}}, 1.0}}
+                                                       {tetrimino_t::J, shape_t{{coord_t{0, 1}, coord_t{1, 1}, coord_t{2, 1}, coord_t{2, 0}}, 1.0}},
+                                                       {tetrimino_t::L, shape_t{{coord_t{0, 0}, coord_t{1, 0}, coord_t{2, 0}, coord_t{2, 1}}, 1.0}},
+                                                       {tetrimino_t::S, shape_t{{coord_t{0, 0}, coord_t{0, 1}, coord_t{1, 1}, coord_t{1, 2}}, 1.0}},
+                                                       {tetrimino_t::Z, shape_t{{coord_t{1, 0}, coord_t{1, 1}, coord_t{0, 1}, coord_t{0, 2}}, 1.0}}
                                                        }};
 
 
@@ -69,8 +74,8 @@ auto rotate = [](int rotations, const std::pair<int, int> &p, double center)
 
 struct tetris_game
 {
-    constexpr static size_t height = 26;
-    constexpr static size_t width = 15;
+    constexpr static uint height = 26;
+    constexpr static uint width = 15;
 
     inline static bool is_free(tetrimino_t t) { return t == tetrimino_t::none; }
 
@@ -81,8 +86,8 @@ struct tetris_game
         static std::mt19937 gen(dev());
 
         // Define the range for the usable values
-        constexpr int min_value = static_cast<int>(tetrimino_t::I);
-        constexpr int max_value = static_cast<int>(tetrimino_t::S);
+        constexpr int min_value = static_cast<int>(tetrimino_t::none) + 1;
+        constexpr int max_value = static_cast<int>(tetrimino_t::end) - 1;
 
         // Create a uniform integer distribution within the usable range
         static std::uniform_int_distribution<> distrib(min_value, max_value);
@@ -175,8 +180,8 @@ struct tetris_game
 
     void step()
     {
-        if (finished)
-            return;
+        if (finished) return;
+        if (current_y >= height) return;
 
         // determine if the current tetrimino can drop to the next row
         plot(true);
@@ -185,7 +190,7 @@ struct tetris_game
         {
             --current_y;
             plot();
-            check_full_lines(current_y, current_y + 4);
+            check_full_lines(current_y, std::min(current_y + 4, height));
             current_tetrimino = random_tetrimino();
             current_x = random_x();
             current_y = 0;

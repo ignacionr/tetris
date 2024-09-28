@@ -39,10 +39,15 @@ struct tetris_audio {
         // Start playback
         SDL_PauseAudioDevice(device_id, 0);
     }
+    void toggle_pause() {
+        paused = !paused;
+        SDL_PauseAudioDevice(device_id, paused);
+    }
 
     SDL_AudioSpec wav_spec;
     Uint32 wav_length;
     Uint8* wav_buffer{nullptr};
     int base_frequency;
     SDL_AudioDeviceID device_id{0};
+    bool paused{false};
 };

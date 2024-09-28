@@ -26,7 +26,8 @@ int main() {
         {tetris_key::left, [&game] { game.move_horizontal(-1); }},
         {tetris_key::right, [&game] { game.move_horizontal(1); }},
         {tetris_key::rotate_1, [&game] { game.move_rotate(-1); }},
-        {tetris_key::rotate_2, [&game] { game.move_rotate(1); }}
+        {tetris_key::rotate_2, [&game] { game.move_rotate(1); }},
+        {tetris_key::toggle_music, [&audio] { audio.toggle_pause(); }}
     };
     auto next_step {std::chrono::system_clock::now() + std::chrono::seconds(1)};
     auto pace {std::chrono::seconds(1)};

@@ -10,6 +10,7 @@ enum class tetris_key {
     right,
     rotate_1,
     rotate_2,
+    toggle_music,
     quit
 };
 
@@ -33,6 +34,7 @@ struct tetris_controls {
         {SDL_SCANCODE_LEFT, tetris_key::left},
         {SDL_SCANCODE_RIGHT, tetris_key::right},
         {SDL_SCANCODE_SPACE, tetris_key::rotate_1},
+        {SDL_SCANCODE_P, tetris_key::toggle_music},
         {SDL_SCANCODE_Q, tetris_key::quit}
     };
 };
