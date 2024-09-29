@@ -1,6 +1,17 @@
+#include <stdio.h>
+#include <unistd.h>
+#include <limits.h>
 #include <chrono>
+#include <filesystem>
 #include <functional>
 #include <unordered_map>
+
+#include <libgen.h>
+#include <limits.h>
+#include <limits.h>  // For PATH_MAX
+#include <stdio.h>
+#include <string.h>
+#include <unistd.h>
 
 #include "tetris_controls.hpp"
 #include "tetris_game.hpp"
@@ -11,12 +22,22 @@ int main() {
     static constexpr char theme_audio[] {"assets/tetris.wav"};
     static constexpr char pop_audio[] {"assets/pop.wav"};
 
+    char exe_path[PATH_MAX];
+    ssize_t len = readlink("/proc/self/exe", exe_path, sizeof(exe_path) - 1);
+
+    if (len == -1) {
+        perror("readlink");
+        return -1;
+    }
+    exe_path[len] = '\0';  // Null-terminate the string
+    std::filesystem::path exeDir = std::filesystem::path(exe_path).parent_path();
+
     bool quit{false};
     tetris_game game;
     tetris_controls controls;
     tetris_screen screen;
-    tetris_audio audio{theme_audio};
-    tetris_audio audio_pop{pop_audio};
+    tetris_audio audio{(exeDir / theme_audio).string().c_str()};
+    tetris_audio audio_pop{(exeDir / pop_audio).string().c_str()};
     game.on_pop = [&audio_pop](){
         audio_pop.play();
     };
