@@ -63,6 +63,8 @@ auto rotate = [](int rotations, const std::pair<int, int> &p, double center)
 struct tetris_game
 {
 
+    static auto constexpr level_boundary = 200;
+
     inline static bool is_free(tetrimino_t t) { return t == tetrimino_t::none; }
 
     static tetrimino_t random_tetrimino()
@@ -152,7 +154,7 @@ struct tetris_game
     }
 
     void check_full_lines(int from, int to) {
-        for (int row {from}; row <= to; ++row) {
+        for (int row {from}; row < to; ++row) {
             if (std::ranges::none_of(board[row], is_free)) {
                 if (on_pop) on_pop();
                 // add the animation hint
@@ -161,9 +163,9 @@ struct tetris_game
                 ga.duration = 0.25;
                 ga.initial_state = board;
                 for(int col{0}; col < game_width; ++col) {
-                    ga.focus.emplace_back(coord_t{row, col});
+                    ga.focus.push_back(coord_t{row, col});
                 }
-                animations.emplace_back(std::move(ga));
+                animations.push_back(ga);
                 // score
                 // scroll down
                 for (int srow{row}; srow > 0; --srow) {
@@ -177,6 +179,10 @@ struct tetris_game
     {
         if (finished) return 1.0f;
         if (current_y >= game_height) return 1.0f;
+
+        if (++current_step % level_boundary == 0) {
+            on_levelup();
+        }
 
         animations.clear();
         // determine if the current tetrimino can drop to the next row
@@ -199,13 +205,7 @@ struct tetris_game
             plot();
         }
         last_step = std::chrono::system_clock::now();
-        return 1.0f + std::accumulate(
-            animations.begin(),
-            animations.end(),
-            0.0f, 
-            [](float initial, const game_animation& a) -> float{
-                return initial + a.duration;
-            });
+        return 1.0f;
     }
 
     board_t board{};
@@ -219,4 +219,5 @@ struct tetris_game
     std::chrono::system_clock::time_point last_step;
 
     std::function<void()> on_pop;
+    std::function<void()> on_levelup;
 };

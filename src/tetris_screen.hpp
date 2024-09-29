@@ -1,4 +1,5 @@
 #pragma once
+#include <cmath> // Include the cmath library to use exp()
 #include <SDL2/SDL.h>
 #include "tetris_game.hpp"
 
@@ -29,10 +30,10 @@ struct tetris_screen
             BLOCK_HEIGHT};
     }
 
-    void render_board(const board_t &board) {
+    void render_board(const board_t &board, int base_height = 0, int from_row = 2, int end_row = game_height) {
         SDL_Rect rect{20,20,BLOCK_WIDTH,BLOCK_HEIGHT};
-        for (int row = 2; row < game_height; ++row) {
-            rect.y = row * BLOCK_HEIGHT;
+        for (int row = from_row; row < end_row; ++row) {
+            rect.y = row * BLOCK_HEIGHT + base_height;
             for (int col = 0; col < game_width; ++col) {
                 rect.x = col * BLOCK_WIDTH + 100;
                 auto color = colors[static_cast<int>(board[row][col])];
@@ -43,17 +44,20 @@ struct tetris_screen
     }
 
     void draw_animations(tetris_game const &game, int progress) {
+        std::cerr << "drawing animation" << std::endl;
         // for now, we will only do the first animation
         auto const &animation = game.animations.front();
-        if (progress < 80)  {
+        if (progress < 90)  {
+            std::cerr << "playing animation" << std::endl;
+            std::cerr << "focus count " << animation.focus.size() << std::endl;
+            auto target_row = animation.focus.front().first;
+            std::cerr << "collapsing row " << target_row << std::endl;
             // start by drawing the old board
-            render_board(animation.initial_state);
-            // now do the hilighting
-            for (auto [row,col]: animation.focus) {
-                auto rect {block_rect(row,col)};
-                SDL_SetRenderDrawColor(pRenderer, 255,255,255, progress);
-                SDL_RenderFillRect(pRenderer, &rect);
-            }
+
+            // Normalize the exponential value to be between 0 and 1
+            float exponential_progress = (std::exp(1.0 * (progress / 100.0f)) - 1) / (std::exp(1.0) - 1);
+            render_board(animation.initial_state, exponential_progress * BLOCK_HEIGHT, 0, target_row);            render_board(animation.initial_state, 0, target_row + 1);
+            SDL_SetRenderDrawBlendMode(pRenderer, SDL_BLENDMODE_BLEND);
         }
         else {
             // just draw the final state

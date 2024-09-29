@@ -38,9 +38,20 @@ int main() {
     tetris_screen screen;
     tetris_audio audio{(exeDir / theme_audio).string().c_str()};
     tetris_audio audio_pop{(exeDir / pop_audio).string().c_str()};
+    auto next_step {std::chrono::system_clock::now() + std::chrono::seconds(1)};
+    auto pace {std::chrono::milliseconds(1000)};
+    auto update_music = [&audio, &pace]{audio.play(0.9f + 300.0f / (4 * pace.count()));};
+    update_music();
+
     game.on_pop = [&audio_pop](){
-        audio_pop.play();
+        std::cerr << __FILE__ << ":" << __LINE__ << std::endl;
+        // audio_pop.play();
     };
+    game.on_levelup = [&pace, update_music]() {
+        pace -= std::chrono::milliseconds{pace.count()/ 5};
+        update_music();
+    };
+
     std::unordered_map<tetris_key, std::function<void()>> receivers {
         {tetris_key::quit, [&quit] { quit = true; }},
         {tetris_key::down, [&game] { game.step(); }},
@@ -50,9 +61,6 @@ int main() {
         {tetris_key::rotate_2, [&game] { game.move_rotate(1); }},
         {tetris_key::toggle_music, [&audio] { audio.toggle_pause(); }}
     };
-    auto next_step {std::chrono::system_clock::now() + std::chrono::seconds(1)};
-    auto pace {std::chrono::seconds(1)};
-    audio.play(1.0f);
     while (!quit) {
         controls.process_events([&receivers](tetris_key k){
             auto action_pos = receivers.find(k);

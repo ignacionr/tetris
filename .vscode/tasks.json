@@ -6,7 +6,7 @@
         {
             "label": "build",
             "type": "shell",
-            "command": "mkdir -p ${workspaceFolder}/build && cd ${workspaceFolder}/build && g++ ../src/tetris.cpp -std=c++20 -lSDL2 -o tetris",
+            "command": "mkdir -p ${workspaceFolder}/build && cd ${workspaceFolder}/build && g++ ../src/tetris.cpp -std=c++20 -lSDL2 -g -O0 -o tetris",
             "problemMatcher": [
                 "$gcc"
             ],
