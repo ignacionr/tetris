@@ -1,36 +1,50 @@
-#include <stdio.h>
-#include <unistd.h>
 #include <limits.h>
 #include <chrono>
 #include <filesystem>
 #include <functional>
 #include <unordered_map>
-
-#include <libgen.h>
-#include <limits.h>
-#include <limits.h>  // For PATH_MAX
-#include <stdio.h>
 #include <string.h>
+
+#if defined(_WIN32)
+#define NOMINMAX
+#include <windows.h>
+#else
 #include <unistd.h>
+#include <libgen.h>
+#endif
 
 #include "tetris_controls.hpp"
 #include "tetris_game.hpp"
 #include "tetris_screen.hpp"
 #include "tetris_audio.hpp"
 
+#if defined(_WIN32)
+int WINAPI WinMain(HINSTANCE , HINSTANCE , LPSTR , int ) {
+#else
 int main() {
+#endif
     static constexpr char theme_audio[] {"assets/tetris.wav"};
     static constexpr char pop_audio[] {"assets/pop.wav"};
 
+    #if defined(_WIN32)
+    char exe_path[MAX_PATH];
+    auto len = GetModuleFileNameA(NULL, exe_path, sizeof(exe_path) - 1);
+    if (len == 0) {
+        perror("GetModuleFileNameA");
+        return -1;
+    }
+    exe_path[len] = '\0';  // Null-terminate the string
+    std::filesystem::path exeDir = std::filesystem::path(exe_path).parent_path();
+    #else
     char exe_path[PATH_MAX];
-    ssize_t len = readlink("/proc/self/exe", exe_path, sizeof(exe_path) - 1);
-
+    auto len = readlink("/proc/self/exe", exe_path, sizeof(exe_path) - 1);
     if (len == -1) {
         perror("readlink");
         return -1;
     }
     exe_path[len] = '\0';  // Null-terminate the string
     std::filesystem::path exeDir = std::filesystem::path(exe_path).parent_path();
+    #endif
 
     bool quit{false};
     tetris_game game;
@@ -57,8 +71,8 @@ int main() {
         {tetris_key::down, [&game] { game.step(); }},
         {tetris_key::left, [&game] { game.move_horizontal(-1); }},
         {tetris_key::right, [&game] { game.move_horizontal(1); }},
-        {tetris_key::rotate_1, [&game] { game.move_rotate(-1); }},
-        {tetris_key::rotate_2, [&game] { game.move_rotate(1); }},
+        {tetris_key::rotate_1, [&game] { game.move_rotate(false); }},
+        {tetris_key::rotate_2, [&game] { game.move_rotate(true); }},
         {tetris_key::toggle_music, [&audio] { audio.toggle_pause(); }}
     };
     while (!quit) {
@@ -74,4 +88,5 @@ int main() {
         }
         screen.render(game, pace);
     }
+    return 0;
 }

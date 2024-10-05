@@ -210,10 +210,10 @@ struct tetris_game
 
     board_t board{};
     bool finished{false};
-    uint current_step{0};
+    unsigned int current_step{0};
     tetrimino_t current_tetrimino{random_tetrimino()};
-    uint current_y{0};
-    uint current_x{1};
+    unsigned int current_y{0};
+    unsigned int current_x{1};
     char current_rotation{0};
     std::vector<game_animation> animations;
     std::chrono::system_clock::time_point last_step;
