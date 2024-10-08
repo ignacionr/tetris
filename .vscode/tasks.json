@@ -13,7 +13,17 @@
             "group": {
                 "kind": "build",
                 "isDefault": true
-            }
+            },
+            "windows": {
+                "command": "..\\scripts\\build.cmd",
+                "options": {
+                    "shell": {
+                        "executable": "cmd.exe",
+                        "args": ["/d", "/c"]
+                    },
+                    "cwd": "${workspaceFolder}\\build"
+                }
+            },
         }
     ]
 }
