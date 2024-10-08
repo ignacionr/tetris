@@ -63,7 +63,7 @@ auto rotate = [](int rotations, const std::pair<int, int> &p, double center)
 struct tetris_game
 {
 
-    static auto constexpr level_boundary = 200;
+    static auto constexpr level_boundary = 300;
 
     inline static bool is_free(tetrimino_t t) { return t == tetrimino_t::none; }
 
